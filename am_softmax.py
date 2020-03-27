@@ -37,4 +37,4 @@ class AMSoftmax(nn.Module):
         term2 = -(self.s * (logits - max_x).exp()) \
                 +((self.s * (logits - max_x)).exp().sum(-1)).unsqueeze(-1)
 
-        return -self.s*max_x + (term2 + term1).log()
+        return self.s*max_x + (term2 + term1).log()
