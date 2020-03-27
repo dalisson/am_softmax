@@ -5,8 +5,10 @@ import torch.nn.functional as F
 class AMSoftmax(nn.Module):
     '''
     the am softmax as seen on https://arxiv.org/pdf/1801.05599.pdf, expects a batch of embeddings as input.
-    inputs : tensor shaped batch_sizeXembedding_size eg. 64X512, 64 embeddings of size 512 each
-    outputs : softmax logits which can then be passed through a NLLoss layer
+    input: tensor (shaped batch_size X embedding_size), eg. 64X512
+    output: tensor shaped (batch_size X n_classes)
+            these are the softmax softmax logits which can then passed
+            through a NLLoss layer.
     
     '''
     def __init__(self, in_features, n_classes, s, m):
@@ -28,8 +30,7 @@ class AMSoftmax(nn.Module):
 
     def am_logsumexp(self, logits):
         '''
-        logsumexp desenhada para a am_softmax
-
+        logsumexp designed for the am_softmax layer
         '''
         max_x = torch.max(logits, dim=-1)[0].unsqueeze(-1)
         term1 = (self.s*(logits - (max_x + self.m))).exp()
