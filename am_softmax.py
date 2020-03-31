@@ -4,12 +4,13 @@ import torch.nn.functional as F
 
 class AMSoftmax(nn.Module):
     '''
-    the am softmax as seen on https://arxiv.org/pdf/1801.05599.pdf, expects a batch of embeddings as input.
+    the am softmax as seen on https://arxiv.org/pdf/1801.05599.pdf,
+    expects a batch of embeddings as input.
     input: tensor (shaped batch_size X embedding_size), eg. 64X512
     output: tensor shaped (batch_size X n_classes)
             these are the softmax softmax logits which can then passed
             through a NLLoss layer.
-    
+
     '''
     def __init__(self, in_features, n_classes, s, m):
         super(AMSoftmax, self).__init__()
@@ -26,15 +27,15 @@ class AMSoftmax(nn.Module):
         kernel = F.normalize(self.linear, p=2, dim=0)
         logits = x_vector@kernel
         scaled_logits = (logits - self.m)*self.s
-        return scaled_logits - self.am_logsumexp(logits)
+        return scaled_logits - self._am_logsumexp(logits)
 
-    def am_logsumexp(self, logits):
+    def _am_logsumexp(self, logits):
         '''
-        logsumexp designed for the am_softmax layer
+        logsumexp designed for am_softmax, the computation is numerically stable
+
         '''
         max_x = torch.max(logits, dim=-1)[0].unsqueeze(-1)
         term1 = (self.s*(logits - (max_x + self.m))).exp()
-        term2 = -(self.s * (logits - max_x).exp()) \
-                +((self.s * (logits - max_x)).exp().sum(-1)).unsqueeze(-1)
-
+        term2 = ((self.s * (logits - max_x)).exp().sum(-1)).unsqueeze(-1) \
+                - (self.s * (logits - max_x)).exp()
         return self.s*max_x + (term2 + term1).log()
