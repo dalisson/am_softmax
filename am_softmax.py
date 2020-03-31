@@ -36,6 +36,6 @@ class AMSoftmax(nn.Module):
         '''
         max_x = torch.max(logits, dim=-1)[0].unsqueeze(-1)
         term1 = (self.s*(logits - (max_x + self.m))).exp()
-        term2 = ((self.s * (logits - max_x)).exp().sum(-1)).unsqueeze(-1) \
+        term2 = (self.s * (logits - max_x)).exp().sum(-1).unsqueeze(-1) \
                 - (self.s * (logits - max_x)).exp()
         return self.s*max_x + (term2 + term1).log()
