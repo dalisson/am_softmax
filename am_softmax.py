@@ -1,12 +1,15 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 
 class AMSoftmax(nn.Module):
     '''
-    the am softmax as seen on https://arxiv.org/pdf/1801.05599.pdf,
-    expects a batch of embeddings as input.
-    input: tensor (shaped batch_size X embedding_size), eg. 64X512
+    The am softmax as seen on https://arxiv.org/pdf/1801.05599.pdf,
+    input: tensor (shaped batch_size X embedding_size) eg. 64X512
     output: tensor shaped (batch_size X n_classes)
             these are the softmax softmax logits which can then passed
             through a NLLoss layer.
@@ -14,18 +17,14 @@ class AMSoftmax(nn.Module):
     '''
     def __init__(self, in_features, n_classes, s, m):
         super(AMSoftmax, self).__init__()
-        self.linear = nn.Parameter(torch.empty(in_features, n_classes))
+        self.linear = nn.Linear(in_features, n_classes, bias=False)
         self.s = s
         self.m = m
-        self._init_parameter()
-
-    def _init_parameter(self):
-        nn.init.xavier_uniform_(self.linear, gain=nn.init.calculate_gain('relu'))
 
     def forward(self, *inputs):
         x_vector = F.normalize(inputs[0], p=2, dim=-1)
-        kernel = F.normalize(self.linear, p=2, dim=0)
-        logits = x_vector@kernel
+        self.linear.weight.data = F.normalize(self.linear.weight.data, p=2, dim=-1)
+        logits = self.linear(x_vector)
         scaled_logits = (logits - self.m)*self.s
         return scaled_logits - self._am_logsumexp(logits)
 
