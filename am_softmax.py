@@ -6,6 +6,10 @@ import torch.nn.functional as F
 class AMSoftmax(nn.Module):
     '''
     The am softmax as seen on https://arxiv.org/pdf/1801.05599.pdf,
+    in_features: size of the embedding, eg. 512
+    n_classes: number of classes on the classification task
+    s: s parameter of loss, standard = 30.
+    m: m parameter of loss, standard = 0.4.
     *inputs:(embeddings, labels)
             (tensor (batch_size X embedding_size), tensor(batch_size))
     output: tensor shaped (batch_size X n_classes)
@@ -13,7 +17,7 @@ class AMSoftmax(nn.Module):
             through a NLLoss layer.
 
     '''
-    def __init__(self, in_features, n_classes, s, m):
+    def __init__(self, in_features, n_classes, s=30, m=0.4):
         super(AMSoftmax, self).__init__()
         self.linear = nn.Linear(in_features, n_classes, bias=False)
         self.s = s
