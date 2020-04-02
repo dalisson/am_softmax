@@ -6,15 +6,15 @@ import torch.nn.functional as F
 class AMSoftmax(nn.Module):
     '''
     The am softmax as seen on https://arxiv.org/pdf/1801.05599.pdf,
-    in_features: size of the embedding, eg. 512
-    n_classes: number of classes on the classification task
-    s: s parameter of loss, standard = 30.
-    m: m parameter of loss, standard = 0.4, best between 0.35 and 0.4 according to paper.
-    *inputs:(embeddings, labels)
-            (tensor (batch_size X embedding_size), tensor(batch_size))
-    output: tensor shaped (batch_size X n_classes)
-            these are the softmax softmax logits which can then passed
-            through a NLLoss layer.
+    init
+        in_features: size of the embedding, eg. 512
+        n_classes: number of classes on the classification task
+        s: s parameter of loss, standard = 30.
+        m: m parameter of loss, standard = 0.4, best between 0.35 and 0.4 according to paper.
+
+    forward:
+        *inputs: tensor shaped (batch_size X embedding_size)
+        output : tensor shaped (batch_size X n_classes) AM_softmax logits for NLL_loss.
 
     '''
     def __init__(self, in_features, n_classes, s=30, m=0.4):
@@ -28,8 +28,7 @@ class AMSoftmax(nn.Module):
         self.linear.weight.data = F.normalize(self.linear.weight.data, p=2, dim=-1)
         logits = self.linear(x_vector)
         scaled_logits = (logits - self.m)*self.s
-        am_softmax_logits = scaled_logits - self._am_logsumexp(logits)
-        return F.nll_loss(am_softmax_logits, inputs[1])
+        return  scaled_logits - self._am_logsumexp(logits)
 
     def _am_logsumexp(self, logits):
         '''
