@@ -3,11 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-
 class AMSoftmax(nn.Module):
     '''
     The am softmax as seen on https://arxiv.org/pdf/1801.05599.pdf,
-    input: tensor (shaped batch_size X embedding_size) eg. 64X512
+    *inputs:(embeddings, labels)
+            (tensor (batch_size X embedding_size), tensor(batch_size))
     output: tensor shaped (batch_size X n_classes)
             these are the softmax softmax logits which can then passed
             through a NLLoss layer.
@@ -24,7 +24,8 @@ class AMSoftmax(nn.Module):
         self.linear.weight.data = F.normalize(self.linear.weight.data, p=2, dim=-1)
         logits = self.linear(x_vector)
         scaled_logits = (logits - self.m)*self.s
-        return scaled_logits - self._am_logsumexp(logits)
+        am_softmax_logits = scaled_logits - self._am_logsumexp(logits)
+        return F.nll_loss(am_softmax_logits, inputs[1])
 
     def _am_logsumexp(self, logits):
         '''
@@ -36,3 +37,4 @@ class AMSoftmax(nn.Module):
         term2 = (self.s * (logits - max_x)).exp().sum(-1).unsqueeze(-1) \
                 - (self.s * (logits - max_x)).exp()
         return self.s*max_x + (term2 + term1).log()
+
