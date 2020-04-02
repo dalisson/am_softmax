@@ -9,7 +9,7 @@ class AMSoftmax(nn.Module):
     in_features: size of the embedding, eg. 512
     n_classes: number of classes on the classification task
     s: s parameter of loss, standard = 30.
-    m: m parameter of loss, standard = 0.4, best between 0.35 and 4 according to paper.
+    m: m parameter of loss, standard = 0.4, best between 0.35 and 0.4 according to paper.
     *inputs:(embeddings, labels)
             (tensor (batch_size X embedding_size), tensor(batch_size))
     output: tensor shaped (batch_size X n_classes)
